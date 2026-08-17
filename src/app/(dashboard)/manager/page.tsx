@@ -22,13 +22,27 @@ export default async function ManagerDashboard() {
             <h1 className="text-3xl font-bold text-white">Manager Dashboard</h1>
             <p className="text-slate-400 mt-2">Approve your pending crew members.</p>
           </div>
-          <Link 
-            href="/manager/crew" 
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-medium text-white transition-colors hover:bg-indigo-700 shadow-lg shadow-indigo-900/20 shrink-0"
-          >
-            <Users className="h-4 w-4" />
-            View My Crew
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link 
+              href="/manager/clients" 
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-slate-800 px-4 text-sm font-medium text-white transition-colors hover:bg-slate-700 border border-slate-700 shrink-0"
+            >
+              Clients & Tasks
+            </Link>
+            <Link 
+              href="/manager/attendance" 
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-slate-800 px-4 text-sm font-medium text-white transition-colors hover:bg-slate-700 border border-slate-700 shrink-0"
+            >
+              Attendance Log
+            </Link>
+            <Link 
+              href="/manager/crew" 
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-medium text-white transition-colors hover:bg-indigo-700 shadow-lg shadow-indigo-900/20 shrink-0"
+            >
+              <Users className="h-4 w-4" />
+              View My Crew
+            </Link>
+          </div>
         </div>
 
         <div className="space-y-4">

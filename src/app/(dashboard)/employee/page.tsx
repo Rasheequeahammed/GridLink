@@ -1,11 +1,14 @@
 import { createClient } from '@/lib/supabase/server';
 import { ShieldAlert, MessageCircle, Info } from 'lucide-react';
+import TimeTracker from './TimeTracker';
 
 export default async function EmployeeDashboard() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   let managerData = null;
+  let activeSessions = [];
+  let activeClients = [];
 
   if (user) {
     const { data: profile } = await supabase
@@ -22,6 +25,23 @@ export default async function EmployeeDashboard() {
         .single();
 
       managerData = manager;
+
+      const { data: attendance } = await supabase
+        .from('attendance')
+        .select('*')
+        .eq('employee_id', user.id)
+        .is('clock_out', null)
+        .order('clock_in', { ascending: false });
+
+      activeSessions = attendance || [];
+
+      const { data: clients } = await supabase
+        .from('clients')
+        .select('id, client_name, task_description')
+        .eq('manager_id', profile.manager_id)
+        .neq('status', 'completed');
+        
+      activeClients = clients || [];
     }
   }
 
@@ -33,7 +53,7 @@ export default async function EmployeeDashboard() {
           <p className="text-slate-400 mt-2">Welcome back. View your active tasks and schedules below.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           <div className="rounded-3xl bg-slate-900/50 p-8 border border-slate-800/50 shadow-xl">
             <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
               <Info className="h-5 w-5 text-indigo-400" />
@@ -70,15 +90,7 @@ export default async function EmployeeDashboard() {
             )}
           </div>
           
-          <div className="rounded-3xl bg-slate-900/50 p-8 border border-slate-800/50 shadow-xl flex flex-col items-center justify-center text-center border-dashed">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-800/50 mb-4">
-              <ShieldAlert className="h-8 w-8 text-slate-500" />
-            </div>
-            <h3 className="text-lg font-medium text-slate-300">No active tasks</h3>
-            <p className="text-sm text-slate-500 mt-2 max-w-[250px]">
-              Your manager hasn't assigned any schedules or tasks to you yet.
-            </p>
-          </div>
+          <TimeTracker activeSessions={activeSessions} clients={activeClients} />
         </div>
       </div>
     </div>
