@@ -6,9 +6,9 @@ export default async function EmployeeDashboard() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  let managerData = null;
-  let activeSessions = [];
-  let activeClients = [];
+  let managerData: any = null;
+  let activeSessions: any[] = [];
+  let activeClients: any[] = [];
 
   if (user) {
     const { data: profile } = await supabase
