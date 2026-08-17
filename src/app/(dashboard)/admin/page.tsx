@@ -13,20 +13,31 @@ export default async function AdminDashboard() {
     .eq('status', 'pending');
 
   return (
-    <div className="min-h-screen bg-slate-950 p-6">
-      <div className="mx-auto max-w-4xl space-y-8 pt-12">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
-            <p className="text-slate-400 mt-2">Approve pending Electrician Managers.</p>
+    <div className="min-h-screen bg-slate-950 p-4 sm:p-6 pb-24">
+      <div className="mx-auto max-w-xl space-y-8 pt-8">
+        <div>
+          <h1 className="text-3xl font-bold text-white text-center mb-8">Admin Hub</h1>
+          
+          <div className="grid grid-cols-1 gap-4 mb-10">
+            <Link href="/admin/managers" className="flex items-center gap-6 bg-slate-900/80 border border-slate-800/80 rounded-[2rem] p-6 transition-all hover:bg-slate-800 hover:scale-[1.02] active:scale-95 shadow-xl">
+              <div className="bg-indigo-500/10 p-5 rounded-2xl shrink-0">
+                <Users className="h-10 w-10 text-indigo-400" />
+              </div>
+              <div>
+                <span className="block font-bold text-xl text-white tracking-wide mb-1">Manager Directory</span>
+                <span className="text-sm text-slate-400">View and manage all approved electrician managers.</span>
+              </div>
+            </Link>
           </div>
-          <Link 
-            href="/admin/managers" 
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-medium text-white transition-colors hover:bg-indigo-700 shadow-lg shadow-indigo-900/20 shrink-0"
-          >
-            <Users className="h-4 w-4" />
-            View Managers Directory
-          </Link>
+
+          <div className="flex items-center justify-between mb-4 px-2">
+            <h2 className="text-xl font-bold text-white">Pending Approvals</h2>
+            {managers && managers.length > 0 && (
+              <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                {managers.length}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4">
