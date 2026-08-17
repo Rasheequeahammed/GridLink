@@ -7,14 +7,14 @@ import { Button } from '@/components/ui/button';
 export default function AttendanceLog({ 
   attendance, 
   employees, 
-  clients 
+  tasks 
 }: { 
   attendance: any[], 
   employees: any[], 
-  clients: any[] 
+  tasks: any[] 
 }) {
   const [employeeFilter, setEmployeeFilter] = useState<string>('all');
-  const [clientFilter, setClientFilter] = useState<string>('all');
+  const [taskFilter, setTaskFilter] = useState<string>('all');
 
   // Format a timestamp to duration
   const getDuration = (clockIn: string, clockOut: string | null) => {
@@ -40,19 +40,20 @@ export default function AttendanceLog({
   // Merge data for display
   const enrichedLogs = attendance.map(log => {
     const emp = employees.find(e => e.id === log.employee_id);
-    const cli = clients.find(c => c.id === log.client_id);
+    const task = tasks.find(t => t.id === log.task_id);
     return {
       ...log,
       employee_name: emp ? `${emp.first_name} ${emp.last_name}` : 'Unknown Employee',
-      client_name: cli ? cli.client_name : 'General Task',
+      client_name: task ? task.clients?.client_name : 'General Client',
+      task_description: task ? task.task_description : 'General Task',
     };
   });
 
   // Apply filters
   const filteredLogs = enrichedLogs.filter(log => {
     const matchEmp = employeeFilter === 'all' || log.employee_id === employeeFilter;
-    const matchClient = clientFilter === 'all' || log.client_id === clientFilter;
-    return matchEmp && matchClient;
+    const matchTask = taskFilter === 'all' || log.task_id === taskFilter;
+    return matchEmp && matchTask;
   });
 
   const handleExportCSV = () => {
@@ -87,9 +88,9 @@ export default function AttendanceLog({
   const handleExportTextReport = () => {
     if (filteredLogs.length === 0) return;
 
-    const clientName = clientFilter !== 'all' 
-      ? clients.find(c => c.id === clientFilter)?.client_name || 'Selected Client' 
-      : 'All Clients';
+    const taskName = taskFilter !== 'all' 
+      ? tasks.find(t => t.id === taskFilter)?.task_description || 'Selected Task' 
+      : 'All Tasks';
 
     let totalMs = 0;
     filteredLogs.forEach(log => {
@@ -102,7 +103,7 @@ export default function AttendanceLog({
 
     const uniqueEmployees = Array.from(new Set(filteredLogs.map(l => l.employee_name)));
 
-    let report = `CLIENT REPORT: ${clientName.toUpperCase()}\n`;
+    let report = `TASK REPORT: ${taskName.toUpperCase()}\n`;
     report += `====================================================\n`;
     report += `Total Days/Shifts Worked: ${filteredLogs.length}\n`;
     report += `Total Time Spent: ${totalHours}h ${totalMins}m\n`;
@@ -126,7 +127,7 @@ export default function AttendanceLog({
     
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `Client_Report_${clientName.replace(/\s+/g, '_')}.txt`);
+    link.setAttribute("download", `Task_Report_${taskName.replace(/\s+/g, '_')}.txt`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -155,19 +156,19 @@ export default function AttendanceLog({
           </select>
 
           <select 
-            value={clientFilter}
-            onChange={e => setClientFilter(e.target.value)}
+            value={taskFilter}
+            onChange={e => setTaskFilter(e.target.value)}
             className="flex-1 rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
           >
             <option value="all">All Clients / Tasks</option>
-            {clients.map(c => (
-              <option key={c.id} value={c.id}>{c.client_name}</option>
+            {tasks.map(t => (
+              <option key={t.id} value={t.id}>{t.clients?.client_name} - {t.task_description}</option>
             ))}
           </select>
         </div>
 
         <div className="flex gap-2 w-full lg:w-auto shrink-0">
-          {clientFilter !== 'all' && (
+          {taskFilter !== 'all' && (
             <Button 
               onClick={handleExportTextReport}
               disabled={filteredLogs.length === 0}
@@ -239,7 +240,7 @@ export default function AttendanceLog({
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <Briefcase className="h-4 w-4 text-slate-500" />
-                        <span className="text-indigo-300">{log.client_name}</span>
+                        <span className="text-indigo-300">{log.client_name} - {log.task_description}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

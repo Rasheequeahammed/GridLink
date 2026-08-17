@@ -1,10 +1,26 @@
+'use client';
+
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { createClientAction } from '../actions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 export default function NewClientPage() {
+  const [error, setError] = useState('');
+  const [isPending, startTransition] = useTransition();
+
+  const handleSubmit = (formData: FormData) => {
+    setError('');
+    startTransition(async () => {
+      const res = await createClientAction(formData);
+      if (res?.error) {
+        setError(res.error);
+      }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 p-6">
       <div className="mx-auto max-w-2xl space-y-8 pt-6">
@@ -16,39 +32,47 @@ export default function NewClientPage() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Clients
           </Link>
-          <h1 className="text-3xl font-bold text-white">Add New Client</h1>
-          <p className="text-slate-400 mt-2">Create a new work site or task for your crew.</p>
+          <h1 className="text-3xl font-bold text-white">Add New Client or Task</h1>
+          <p className="text-slate-400 mt-2">Create a new client, or type an existing client's name to add a new task to them.</p>
         </div>
 
         <div className="rounded-3xl bg-slate-900/80 p-8 shadow-2xl border border-slate-800/50 backdrop-blur-xl">
-          <form action={createClientAction} className="space-y-5">
+          {error && (
+            <div className="mb-6 rounded-xl bg-red-500/10 border border-red-500/20 p-4 flex items-center gap-3 text-red-400">
+              <AlertCircle className="h-5 w-5 shrink-0" />
+              <p className="text-sm font-medium">{error}</p>
+            </div>
+          )}
+
+          <form action={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-slate-400 mb-1.5">Client Name *</label>
-              <Input name="client_name" required placeholder="e.g. Acme Corp Office" />
+              <Input name="client_name" required placeholder="e.g. Acme Corp Office" className="bg-slate-950" />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-slate-400 mb-1.5">Address</label>
-              <Input name="client_address" placeholder="e.g. 123 Business Ave, Suite 100" />
+              <Input name="client_address" placeholder="e.g. 123 Business Ave, Suite 100" className="bg-slate-950" />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-slate-400 mb-1.5">Contact Phone/Email</label>
-              <Input name="client_contact" placeholder="e.g. John Doe (555-0199)" />
+              <Input name="client_contact" placeholder="e.g. John Doe (555-0199)" className="bg-slate-950" />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1.5">Task Description</label>
+              <label className="block text-sm font-medium text-slate-400 mb-1.5">Task Description *</label>
               <textarea 
                 name="task_description" 
+                required
                 rows={4}
-                className="w-full rounded-xl border border-slate-800 bg-slate-950/50 px-4 py-3 text-sm text-slate-300 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all resize-none"
+                className="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-300 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all resize-none"
                 placeholder="e.g. Full electrical wiring and light fixture installation."
               ></textarea>
             </div>
 
-            <Button type="submit" className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700">
-              Create Client Task
+            <Button type="submit" disabled={isPending} className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700">
+              {isPending ? 'Saving...' : 'Save Client Task'}
             </Button>
           </form>
         </div>

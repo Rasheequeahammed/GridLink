@@ -3,17 +3,16 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 
-export async function clockInAction(client_id: string | null) {
+export async function clockInAction(task_id: string | null) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Not authenticated' };
 
-  const { data: profile } = await supabase.from('profiles').select('manager_id').eq('id', user.id).single();
+  if (!task_id) return { error: 'Task is required' };
 
   const { error } = await supabase.from('attendance').insert({
     employee_id: user.id,
-    manager_id: profile?.manager_id,
-    client_id: client_id || null,
+    task_id: task_id,
     clock_in: new Date().toISOString()
   });
 

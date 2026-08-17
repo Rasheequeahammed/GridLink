@@ -9,7 +9,7 @@ export default async function ClientsPage() {
   
   const { data: clients } = await supabase
     .from('clients')
-    .select('*')
+    .select('*, tasks(*)')
     .eq('manager_id', user?.id)
     .order('created_at', { ascending: false });
 

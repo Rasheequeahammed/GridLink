@@ -8,7 +8,7 @@ export default async function EmployeeDashboard() {
 
   let managerData: any = null;
   let activeSessions: any[] = [];
-  let activeClients: any[] = [];
+  let activeTasks: any[] = [];
 
   if (user) {
     const { data: profile } = await supabase
@@ -35,13 +35,17 @@ export default async function EmployeeDashboard() {
 
       activeSessions = attendance || [];
 
-      const { data: clients } = await supabase
-        .from('clients')
-        .select('id, client_name, task_description')
-        .eq('manager_id', profile.manager_id)
+      const { data: tasks } = await supabase
+        .from('tasks')
+        .select('id, task_description, clients!inner(client_name, manager_id)')
+        .eq('clients.manager_id', profile.manager_id)
         .neq('status', 'completed');
         
-      activeClients = clients || [];
+      activeTasks = tasks?.map((t: any) => ({
+        id: t.id,
+        task_description: t.task_description,
+        client_name: t.clients.client_name
+      })) || [];
     }
   }
 
@@ -90,7 +94,7 @@ export default async function EmployeeDashboard() {
             )}
           </div>
           
-          <TimeTracker activeSessions={activeSessions} clients={activeClients} />
+          <TimeTracker activeSessions={activeSessions} tasks={activeTasks} />
         </div>
       </div>
     </div>

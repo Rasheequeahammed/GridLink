@@ -5,29 +5,29 @@ import { clockInAction, clockOutAction } from './actions';
 import { Play, Square, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export default function TimeTracker({ activeSessions, clients }: { activeSessions: any[], clients: any[] }) {
-  const [selectedClient, setSelectedClient] = useState<string>('');
+export default function TimeTracker({ activeSessions, tasks }: { activeSessions: any[], tasks: any[] }) {
+  const [selectedTask, setSelectedTask] = useState<string>('');
   const [notes, setNotes] = useState<{ [key: string]: string }>({});
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [showNotesModal, setShowNotesModal] = useState<string | null>(null);
   const [isClockingIn, setIsClockingIn] = useState(false);
 
   const handleClockIn = async () => {
-    if (!selectedClient && clients.length > 0) {
-      alert('Please select a client to work on.');
+    if (!selectedTask && tasks.length > 0) {
+      alert('Please select a task to work on.');
       return;
     }
     
-    // Prevent double-clocking into the same client
-    if (activeSessions.some(session => session.client_id === selectedClient)) {
-      alert('You are already clocked into this client.');
+    // Prevent double-clocking into the same task
+    if (activeSessions.some(session => session.task_id === selectedTask)) {
+      alert('You are already clocked into this task.');
       return;
     }
 
     setIsClockingIn(true);
-    await clockInAction(selectedClient || null);
+    await clockInAction(selectedTask || null);
     setIsClockingIn(false);
-    setSelectedClient('');
+    setSelectedTask('');
   };
 
   const handleClockOut = async (sessionId: string) => {
@@ -45,28 +45,28 @@ export default function TimeTracker({ activeSessions, clients }: { activeSession
           <Play className="h-5 w-5 text-emerald-400 fill-current" /> Start a Task
         </h3>
         <p className="text-sm text-slate-500 mt-1 mb-4">
-          Select a client to start tracking time. You can work on multiple tasks at once.
+          Select a task to start tracking time. You can work on multiple tasks at once.
         </p>
 
         <div className="w-full max-w-sm flex flex-col sm:flex-row gap-3">
-          {clients.length > 0 ? (
+          {tasks.length > 0 ? (
             <select 
-              value={selectedClient} 
-              onChange={e => setSelectedClient(e.target.value)}
+              value={selectedTask} 
+              onChange={e => setSelectedTask(e.target.value)}
               className="flex-1 rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
             >
-              <option value="" disabled>-- Select Client --</option>
-              {clients.map(c => (
-                <option key={c.id} value={c.id}>{c.client_name}</option>
+              <option value="" disabled>-- Select Task --</option>
+              {tasks.map(t => (
+                <option key={t.id} value={t.id}>{t.client_name} - {t.task_description}</option>
               ))}
             </select>
           ) : (
-            <p className="text-amber-400 text-sm mb-4">Your manager hasn't added any clients yet.</p>
+            <p className="text-amber-400 text-sm mb-4">Your manager hasn't assigned any tasks yet.</p>
           )}
 
           <Button 
             onClick={handleClockIn} 
-            disabled={isClockingIn || (clients.length > 0 && !selectedClient)} 
+            disabled={isClockingIn || (tasks.length > 0 && !selectedTask)} 
             className="bg-emerald-600 hover:bg-emerald-700 whitespace-nowrap"
           >
             Clock In
@@ -83,7 +83,7 @@ export default function TimeTracker({ activeSessions, clients }: { activeSession
           
           <div className="grid grid-cols-1 gap-4">
             {activeSessions.map((session) => {
-              const activeClient = clients.find(c => c.id === session.client_id);
+              const activeTask = tasks.find(t => t.id === session.task_id);
               
               return (
                 <div key={session.id} className="rounded-2xl bg-slate-900 border border-slate-800 shadow-lg p-5 relative overflow-hidden">
@@ -92,7 +92,7 @@ export default function TimeTracker({ activeSessions, clients }: { activeSession
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                       <h4 className="text-lg font-bold text-white">
-                        {activeClient?.client_name || 'General Task'}
+                        {activeTask ? `${activeTask.client_name} - ${activeTask.task_description}` : 'General Task'}
                       </h4>
                       <p className="text-sm text-slate-400 flex items-center gap-1.5 mt-1">
                         <span className="relative flex h-2 w-2">

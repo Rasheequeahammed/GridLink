@@ -9,22 +9,30 @@ export default async function AttendancePage() {
   
   if (!user) return null;
 
-  // Fetch all related data manually to avoid Supabase FK resolution issues
-  const { data: attendance } = await supabase
-    .from('attendance')
-    .select('*')
-    .eq('manager_id', user.id)
-    .order('clock_in', { ascending: false });
-
+  // Fetch employees
   const { data: employees } = await supabase
     .from('profiles')
     .select('id, first_name, last_name')
     .eq('manager_id', user.id);
 
-  const { data: clients } = await supabase
-    .from('clients')
-    .select('id, client_name')
-    .eq('manager_id', user.id);
+  const employeeIds = employees?.map(e => e.id) || [];
+
+  // Fetch attendance
+  let attendance = [];
+  if (employeeIds.length > 0) {
+    const { data } = await supabase
+      .from('attendance')
+      .select('*')
+      .in('employee_id', employeeIds)
+      .order('clock_in', { ascending: false });
+    attendance = data || [];
+  }
+
+  // Fetch tasks and clients
+  const { data: tasks } = await supabase
+    .from('tasks')
+    .select('*, clients!inner(id, client_name, manager_id)')
+    .eq('clients.manager_id', user.id);
 
   return (
     <div className="min-h-screen bg-slate-950 p-6">
@@ -45,7 +53,7 @@ export default async function AttendancePage() {
         <AttendanceLog 
           attendance={attendance || []} 
           employees={employees || []} 
-          clients={clients || []} 
+          tasks={tasks || []} 
         />
       </div>
     </div>
