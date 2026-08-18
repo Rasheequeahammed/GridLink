@@ -35,8 +35,8 @@ export default async function AttendancePage() {
     .eq('clients.manager_id', user.id);
 
   return (
-    <div className="min-h-screen bg-slate-950 p-6">
-      <div className="mx-auto max-w-6xl space-y-8 pt-6">
+    <div className="min-h-screen bg-slate-950 p-4 md:p-6">
+      <div className="mx-auto max-w-6xl space-y-6 md:space-y-8 pt-4 md:pt-6">
         <div>
           <Link 
             href="/manager" 

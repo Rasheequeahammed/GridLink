@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Clock, User, Briefcase, Filter, Download, FileText } from 'lucide-react';
+import { Clock, User, Briefcase, Filter, Download, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function AttendanceLog({ 
@@ -15,6 +15,9 @@ export default function AttendanceLog({
 }) {
   const [employeeFilter, setEmployeeFilter] = useState<string>('all');
   const [taskFilter, setTaskFilter] = useState<string>('all');
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
+  const [showFilters, setShowFilters] = useState<boolean>(false);
 
   // Format a timestamp to duration
   const getDuration = (clockIn: string, clockOut: string | null) => {
@@ -53,7 +56,15 @@ export default function AttendanceLog({
   const filteredLogs = enrichedLogs.filter(log => {
     const matchEmp = employeeFilter === 'all' || log.employee_id === employeeFilter;
     const matchTask = taskFilter === 'all' || log.task_id === taskFilter;
-    return matchEmp && matchTask;
+    
+    let matchDate = true;
+    if (fromDate || toDate) {
+      const logDate = log.clock_in.split('T')[0];
+      if (fromDate && logDate < fromDate) matchDate = false;
+      if (toDate && logDate > toDate) matchDate = false;
+    }
+    
+    return matchEmp && matchTask && matchDate;
   });
 
   const handleExportCSV = () => {
@@ -138,12 +149,37 @@ export default function AttendanceLog({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col lg:flex-row gap-4 p-4 rounded-2xl bg-slate-900 border border-slate-800 items-start lg:items-center">
-        <div className="flex items-center gap-2 text-slate-400 font-medium px-2 shrink-0">
-          <Filter className="h-4 w-4" /> Filters
-        </div>
+      <div className="flex flex-col p-4 rounded-2xl bg-slate-900 border border-slate-800">
+        <button 
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center justify-between w-full text-slate-400 font-medium px-2 hover:text-white transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4" /> Filters
+          </div>
+          {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </button>
         
-        <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto flex-1">
+        {showFilters && (
+          <div className="flex flex-col lg:flex-row gap-4 mt-4 items-start lg:items-center">
+            <div className="flex flex-col xl:flex-row gap-4 w-full lg:w-auto flex-1">
+          <div className="flex items-center gap-2 flex-1 xl:max-w-[320px]">
+            <input
+              type="date"
+              value={fromDate}
+              onChange={e => setFromDate(e.target.value)}
+              className="flex-1 min-w-0 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
+              title="From Date"
+            />
+            <span className="text-slate-500 text-sm">to</span>
+            <input
+              type="date"
+              value={toDate}
+              onChange={e => setToDate(e.target.value)}
+              className="flex-1 min-w-0 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 [color-scheme:dark]"
+              title="To Date"
+            />
+          </div>
           <select 
             value={employeeFilter}
             onChange={e => setEmployeeFilter(e.target.value)}
@@ -167,7 +203,7 @@ export default function AttendanceLog({
           </select>
         </div>
 
-        <div className="flex gap-2 w-full lg:w-auto shrink-0">
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto shrink-0">
           {taskFilter !== 'all' && (
             <Button 
               onClick={handleExportTextReport}
@@ -187,25 +223,27 @@ export default function AttendanceLog({
             <Download className="h-4 w-4 mr-2" />
             CSV Data
           </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3 md:p-5">
+          <p className="text-[10px] sm:text-sm text-slate-400 mb-1 leading-tight">Total Logs</p>
+          <p className="text-lg sm:text-2xl font-bold text-white">{filteredLogs.length}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3 md:p-5">
+          <p className="text-[10px] sm:text-sm text-slate-400 mb-1 leading-tight">Completed</p>
+          <p className="text-lg sm:text-2xl font-bold text-white">{totalCompletedShifts}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3 md:p-5">
+          <p className="text-[10px] sm:text-sm text-slate-400 mb-1 leading-tight">Active</p>
+          <p className="text-lg sm:text-2xl font-bold text-emerald-400">{filteredLogs.length - totalCompletedShifts}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-          <p className="text-sm text-slate-400 mb-1">Total Logs Shown</p>
-          <p className="text-2xl font-bold text-white">{filteredLogs.length}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-          <p className="text-sm text-slate-400 mb-1">Completed Shifts</p>
-          <p className="text-2xl font-bold text-white">{totalCompletedShifts}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-          <p className="text-sm text-slate-400 mb-1">Currently Active</p>
-          <p className="text-2xl font-bold text-emerald-400">{filteredLogs.length - totalCompletedShifts}</p>
-        </div>
-      </div>
-
-      <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+      <div className="hidden md:block overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-300">
             <thead className="bg-slate-950/50 text-xs font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-800">
@@ -269,6 +307,68 @@ export default function AttendanceLog({
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile Card Layout */}
+      <div className="block md:hidden space-y-4">
+        {filteredLogs.length === 0 ? (
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-500">
+            No attendance records found for these filters.
+          </div>
+        ) : (
+          filteredLogs.map(log => (
+            <div key={log.id} className="rounded-2xl border border-slate-800 bg-slate-900 p-5 space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-slate-800 flex items-center justify-center shrink-0">
+                    <User className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-white">{log.employee_name}</h3>
+                    <p className="text-sm text-slate-400 flex items-center gap-1 mt-0.5">
+                      <Briefcase className="h-3.5 w-3.5" />
+                      <span className="truncate">{log.client_name} - {log.task_description}</span>
+                    </p>
+                  </div>
+                </div>
+                {!log.clock_out && (
+                  <span className="shrink-0 inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+                    Active
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-800/50">
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">Clock In</p>
+                  <p className="text-sm text-slate-300 font-medium">{formatTime(log.clock_in)}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{formatDate(log.clock_in)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">Clock Out</p>
+                  <p className="text-sm text-slate-300 font-medium">{log.clock_out ? formatTime(log.clock_out) : '--:--'}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{log.clock_out ? formatDate(log.clock_out) : '--'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-slate-800/50">
+                <span className="text-sm text-slate-400">Total Duration:</span>
+                <span className="text-sm font-medium text-white">
+                  {log.clock_out ? getDuration(log.clock_in, log.clock_out) : 'In Progress'}
+                </span>
+              </div>
+
+              {log.notes && (
+                <div className="pt-3 border-t border-slate-800/50">
+                  <p className="text-xs text-slate-500 mb-1">Notes</p>
+                  <p className="text-sm text-slate-400 italic bg-slate-950/50 p-3 rounded-lg border border-slate-800/50">
+                    "{log.notes}"
+                  </p>
+                </div>
+              )}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
