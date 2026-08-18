@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import AttendanceLog from './AttendanceLog';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AttendancePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

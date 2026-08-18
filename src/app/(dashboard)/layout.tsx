@@ -1,6 +1,7 @@
 import { LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import GlobalRealtimeListener from "@/components/GlobalRealtimeListener";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -60,6 +61,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <main className="flex-1 flex flex-col">
         {children}
       </main>
+      <GlobalRealtimeListener />
     </div>
   );
 }
